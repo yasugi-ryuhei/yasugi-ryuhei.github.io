@@ -4,7 +4,7 @@
   var E = window.MJEngine, G = window.MJGenerator, T = window.MJTiles, S = window.MJShanten, R = window.MJRules;
   var $ = function (id) { return document.getElementById(id); };
   var STORE_KEY = 'mj-drill-stats-v1';
-  var VIEWS = ['machi', 'table', 'yaku', 'practice', 'rules'];
+  var VIEWS = ['machi', 'calc', 'table', 'yaku', 'practice', 'rules'];
   var rules = R.load();
   var state = { mode: null, question: null, answered: false, session: { total: 0, correct: 0, streak: 0 } };
   // 待ち牌ツールの初期表示（筒子・索子・東だけなので三人麻雀でも使える）
@@ -22,6 +22,7 @@
     if (view === 'practice') renderHome();
     if (view === 'machi') renderMachi();
     if (view === 'table') renderTable();
+    if (view === 'calc') renderCalc();
     if (view === 'yaku') renderYaku();
     if (view === 'rules') renderRules();
     window.scrollTo(0, 0);
@@ -138,7 +139,7 @@
     }
 
     var r = q.result;
-    html += '<h3>役<em>' + (r.yakuman ? '役満' : r.han + '翻') + '</em></h3><div class="chips">' +
+    html += '<h3>役<em>' + (r.yakuman ? s.limit : r.han + '翻') + '</em></h3><div class="chips">' +
       r.yaku.map(function (y) { return chip(y.name + (r.yakuman ? '' : '<b>' + y.han + '</b>')); }).join('') +
       (r.dora ? chip('ドラ<b>' + r.dora + '</b>', 'dora-chip') : '') +
       (r.aka ? chip('赤ドラ<b>' + r.aka + '</b>', 'dora-chip') : '') + '</div>';
@@ -177,6 +178,118 @@
     $('result').hidden = false;
     $('next').focus({ preventScroll: true });
     renderProgress();
+  }
+
+  // ---------- 点数計算機 ----------
+  // 初期表示はリーチ・平和・タンヤオの例
+  var calc = { tiles: [12, 13, 14, 14, 15, 16, 19, 20, 21, 22, 22, 23, 24, 25], melds: [], mode: 'hand',
+    tsumo: false, riichi: 1, seat: 28, round: 27, dora: 0, flags: {} };
+  var MELD_NAMES = { chi: 'チー', pon: 'ポン', minkan: '明槓', ankan: '暗槓' };
+
+  function calcCounts() {
+    var c = new Array(34).fill(0);
+    calc.tiles.forEach(function (t) { c[t]++; });
+    calc.melds.forEach(function (m) { m.tiles.forEach(function (t) { c[t]++; }); });
+    return c;
+  }
+  function calcNeed() { return 14 - calc.melds.length * 3; }
+  function meldTiles(mode, t) {
+    if (mode === 'chi') return [t, t + 1, t + 2];
+    return mode === 'pon' ? [t, t, t] : [t, t, t, t];
+  }
+  function canAdd(mode, t, counts, usable) {
+    if (!usable(t)) return false;
+    if (mode === 'hand') return calc.tiles.length < calcNeed() && counts[t] < 4;
+    if (calc.melds.length >= 4 || calc.tiles.length > calcNeed() - 3) return false;
+    if (mode === 'chi') return t < 27 && t % 9 <= 6 && [t, t + 1, t + 2].every(function (x) { return counts[x] < 4 && usable(x); });
+    return counts[t] + (mode === 'pon' ? 3 : 4) <= 4;
+  }
+
+  function renderCalc() {
+    var usable = R.usable(rules), three = rules.players === 3;
+    calc.tiles = calc.tiles.filter(usable);
+    if (three) { calc.melds = calc.melds.filter(function (m) { return m.type !== 'chi'; }); if (calc.seat === 30) calc.seat = 28; if (calc.mode === 'chi') calc.mode = 'hand'; }
+    var counts = calcCounts(), need = calcNeed(), n = calc.tiles.length;
+
+    // 最後に入れた牌が和了牌
+    var body = calc.tiles.slice(0, n === need ? n - 1 : n).sort(function (a, b) { return a - b; });
+    function btn(t, i) {
+      return '<button type="button" class="tile-btn" data-cremove="' + i + '" aria-label="' + E.tileName(t) + 'を外す">' + T.tileSVG(t) + '</button>';
+    }
+    var html = body.map(function (t) { return btn(t, calc.tiles.indexOf(t)); }).join('');
+    if (n === need) html += '<span class="win"><em>和了牌</em>' + btn(calc.tiles[n - 1], n - 1) + '</span>';
+    $('calc-hand').innerHTML = html || '<span class="empty">下の牌をタップして手牌を作る</span>';
+    $('calc-melds').hidden = !calc.melds.length;
+    $('calc-melds').innerHTML = calc.melds.map(function (m, i) {
+      var ts = m.tiles.map(function (t, k) { return T.tileSVG(t, { back: m.type === 'ankan' && (k === 0 || k === 3) }); }).join('');
+      return '<button type="button" class="meld meld-btn" data-mremove="' + i + '" aria-label="' + MELD_NAMES[m.type] + 'を外す"><em>' + MELD_NAMES[m.type] + ' ×</em><span>' + ts + '</span></button>';
+    }).join('');
+    $('calc-count').textContent = n + ' / ' + need + '枚' + (calc.melds.length ? '＋鳴き' + calc.melds.length : '');
+
+    var modes = [['hand', '手牌'], ['pon', 'ポン'], ['chi', 'チー'], ['minkan', '明槓'], ['ankan', '暗槓']];
+    $('calc-mode').innerHTML = modes.map(function (m) {
+      return '<button type="button" data-cmode="' + m[0] + '" aria-pressed="' + (calc.mode === m[0]) + '"' +
+        (m[0] === 'chi' && three ? ' disabled' : '') + '>' + m[1] + '</button>';
+    }).join('');
+    var rows = [[0, 9], [9, 18], [18, 27], [27, 34]];
+    $('calc-palette').innerHTML = rows.map(function (r) {
+      var out = '';
+      for (var t = r[0]; t < r[1]; t++) {
+        if (!usable(t)) { out += '<span class="tile-btn blank"></span>'; continue; }
+        out += '<button type="button" class="tile-btn" data-cadd="' + t + '"' + (canAdd(calc.mode, t, counts, usable) ? '' : ' disabled') +
+          ' aria-label="' + E.tileName(t) + '">' + T.tileSVG(t) + '</button>';
+      }
+      return '<div class="pal-row">' + out + '</div>';
+    }).join('');
+
+    // 条件
+    function seg(key, opts) {
+      return '<div class="seg">' + opts.map(function (o) {
+        return '<button type="button" data-cset="' + key + '" data-val="' + o[0] + '" aria-pressed="' + (String(calc[key]) === String(o[0])) + '">' + o[1] + '</button>';
+      }).join('') + '</div>';
+    }
+    function flag(key, label) {
+      return '<button type="button" class="toggle" data-cflag="' + key + '" aria-pressed="' + !!calc.flags[key] + '">' + label + '</button>';
+    }
+    var seats = [[27, '東・親'], [28, '南'], [29, '西']].concat(three ? [] : [[30, '北']]);
+    $('calc-opts').innerHTML =
+      '<div class="opt-row">' + seg('tsumo', [[false, 'ロン'], [true, 'ツモ']]) + seg('riichi', [[0, 'リーチなし'], [1, 'リーチ'], [2, 'ダブル']]) + '</div>' +
+      '<div class="opt-row"><label>場風</label>' + seg('round', [[27, '東'], [28, '南']]) + '<label>自風</label>' + seg('seat', seats) + '</div>' +
+      '<div class="opt-row"><label>ドラ</label><div class="stepper"><button type="button" data-cdora="-1" aria-label="ドラを減らす">−</button><b>' + calc.dora +
+      '</b><button type="button" data-cdora="1" aria-label="ドラを増やす">＋</button></div><small>赤・裏も合わせた枚数</small></div>' +
+      '<div class="opt-row">' + flag('ippatsu', '一発') + flag('rinshan', '嶺上開花') + flag('chankan', '槍槓') + flag('haitei', '海底・河底') + flag('tenhou', '天和・地和') + '</div>';
+
+    // 結果
+    var out;
+    if (n < need) out = '<p class="hint">あと' + (need - n) + '枚入れると点数が出ます</p>';
+    else {
+      var closedCounts = new Array(34).fill(0);
+      calc.tiles.forEach(function (t) { closedCounts[t]++; });
+      var hand = { closed: calc.tiles.slice(0, n - 1), winTile: calc.tiles[n - 1], melds: calc.melds, tsumo: calc.tsumo,
+        riichi: calc.riichi > 0, doubleRiichi: calc.riichi === 2, seatWind: calc.seat, roundWind: calc.round,
+        doraIndicators: [], extraDora: calc.dora, flags: calc.flags };
+      var r = E.evaluate(hand, rules);
+      if (r) out = explain({ type: 'hand', score: r.score, result: r });
+      else if (S.shanten(closedCounts) === -1) out = '<div class="status">役がありません</div><p class="hint">リーチや役牌など、役が1つ必要です</p>';
+      else out = '<div class="status">和了形ではありません</div><p class="hint">4面子1雀頭になるように入れてください</p>';
+    }
+    $('calc-result').innerHTML = out;
+  }
+
+  function calcClick(d) {
+    if (d.cadd) {
+      var t = Number(d.cadd);
+      if (calc.mode === 'hand') calc.tiles.push(t);
+      else { calc.melds.push({ type: calc.mode, tiles: meldTiles(calc.mode, t) }); calc.mode = 'hand'; }
+    } else if (d.cremove) calc.tiles.splice(Number(d.cremove), 1);
+    else if (d.mremove) calc.melds.splice(Number(d.mremove), 1);
+    else if (d.cmode) calc.mode = d.cmode;
+    else if (d.cset) calc[d.cset] = d.val === 'true' ? true : d.val === 'false' ? false : Number(d.val);
+    else if (d.cflag) calc.flags[d.cflag] = !calc.flags[d.cflag];
+    else if (d.cdora) calc.dora = Math.max(0, Math.min(20, calc.dora + Number(d.cdora)));
+    else return false;
+    renderCalc();
+    return true;
   }
 
   // ---------- 待ち牌ツール ----------
@@ -238,14 +351,18 @@
   // ---------- 役一覧 ----------
   function renderYaku() {
     var Y = window.MJYaku;
-    function title(han) { return han === 13 ? '役満' : han + '翻'; }
+    function title(han) { return han === 13 ? '役満' : han === 26 ? 'ダブル役満' : han === 0 ? 'その他' : han + '翻'; }
+    function short(han) { return han === 26 ? 'W役満' : han === 0 ? '他' : title(han); }
     $('yaku-jump').innerHTML = Y.YAKU.map(function (g) {
-      return '<button type="button" data-jump="yaku-' + g.han + '">' + title(g.han) + '</button>';
+      return '<button type="button" data-jump="yaku-' + g.han + '">' + short(g.han) + '</button>';
     }).join('');
     $('yaku-body').innerHTML = Y.YAKU.map(function (g) {
-      return '<h2 id="yaku-' + g.han + '">' + title(g.han) + '</h2><div class="card yaku-list">' + g.list.map(function (y) {
+      var off = g.han === 26 && !rules.doubleYakuman ? '<p class="note">設定で「ダブル役満なし」になっているので、役満として数えます。</p>' : '';
+      return '<h2 id="yaku-' + g.han + '">' + title(g.han) + '</h2>' + off + '<div class="card yaku-list">' + g.list.map(function (y) {
         var open = y.kuitan && !rules.kuitan ? 0 : y.open, badge;
-        if (g.han === 13) badge = '<span class="han ym">役満</span>';
+        if (y.badge) badge = '<span class="han sub">' + y.badge + '</span>';
+        else if (g.han === 26) badge = '<span class="han ym">' + (rules.doubleYakuman ? 'ダブル役満' : '役満') + '</span>';
+        else if (g.han === 13) badge = '<span class="han ym">役満</span>';
         else {
           badge = '<span class="han">' + y.closed + '翻</span>' +
             (open ? (open !== y.closed ? '<span class="han sub">鳴き' + open + '翻</span>' : '') : '<span class="han no">鳴き不可</span>');
@@ -314,6 +431,8 @@
     var t = e.target.closest('button, a');
     if (!t) return;
     var d = t.dataset;
+    if (calcClick(d)) return;
+    if (t.id === 'calc-clear') { calc.tiles = []; calc.melds = []; calc.mode = 'hand'; renderCalc(); return; }
     if (d.view) { show(d.view); try { history.replaceState(null, '', '#' + d.view); } catch (err) { /* 表示だけ切り替える */ } }
     else if (d.start) start(d.start);
     else if (d.value) answer(d.value);

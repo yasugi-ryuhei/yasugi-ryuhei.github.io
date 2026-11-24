@@ -208,3 +208,33 @@ test('出題: 各ルールで1000問ずつ作っても整合する', () => {
     }
   });
 });
+
+test('国士無双とダブル役満', () => {
+  const dbl = { ...E.DEFAULT_RULES, doubleYakuman: true };
+  const k = E.evaluate(hand('19m19p19s1234566z', '7z'));
+  assert.deepStrictEqual(names(k), ['国士無双']);
+  assert.strictEqual(k.score.text, '32000');
+  const k13 = hand('19m19p19s1234567z', '7z');
+  assert.strictEqual(E.evaluate(k13).score.text, '32000');
+  assert.strictEqual(E.evaluate(k13, dbl).score.text, '64000');
+  assert.strictEqual(E.evaluate(k13, dbl).score.limit, 'ダブル役満');
+  const tanki = hand('222m888m555p111s9s', '9s', { tsumo: true });
+  assert.deepStrictEqual(names(E.evaluate(tanki, dbl)), ['四暗刻単騎']);
+  assert.strictEqual(E.evaluate(tanki, dbl).score.text, '16000-32000');
+  const chuuren = hand('1112345678999m', '5m');
+  assert.deepStrictEqual(names(E.evaluate(chuuren)), ['純正九蓮宝燈']);
+  assert.deepStrictEqual(names(E.evaluate(hand('1112345678999m'.replace('5', '55').replace('999', '99'), '9m'))), ['九蓮宝燈']);
+});
+
+test('状況役: 一発・ダブル立直・嶺上開花・天和、ドラ枚数の直接指定', () => {
+  const base = '123m567m23p678s55s';
+  const r = E.evaluate(hand(base, '4p', { riichi: true, doubleRiichi: true, flags: { ippatsu: true }, extraDora: 2 }));
+  assert.deepStrictEqual(names(r), ['ダブル立直', '一発', '平和'].sort());
+  assert.strictEqual(r.han, 6);
+  // 役なしの鳴き手でも嶺上開花で和了できる
+  const open = hand('123m567p34s99s', '5s', { tsumo: true, flags: { rinshan: true }, melds: [{ type: 'minkan', tiles: [31, 31, 31, 31] }] });
+  assert.ok(names(E.evaluate(open)).includes('嶺上開花'));
+  const t = E.evaluate(hand(base, '4p', { tsumo: true, seatWind: 27, flags: { tenhou: true } }));
+  assert.deepStrictEqual(names(t), ['天和']);
+  assert.strictEqual(t.score.text, '16000オール');
+});

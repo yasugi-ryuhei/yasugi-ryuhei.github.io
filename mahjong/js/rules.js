@@ -3,8 +3,8 @@
   'use strict';
   var KEY = 'mj-drill-rules-v1';
   var PRESETS = {
-    standard: { preset: 'standard', players: 4, aka: 3, kuitan: true, kiriage: false, round1000: false, tsumoLoss: true, doubleWindFu: 4 },
-    sanma: { preset: 'sanma', players: 3, aka: 2, kuitan: true, kiriage: false, round1000: false, tsumoLoss: true, doubleWindFu: 4 }
+    standard: { preset: 'standard', players: 4, aka: 3, kuitan: true, kiriage: false, round1000: false, tsumoLoss: true, doubleWindFu: 4, doubleYakuman: true },
+    sanma: { preset: 'sanma', players: 3, aka: 2, kuitan: true, kiriage: false, round1000: false, tsumoLoss: true, doubleWindFu: 4, doubleYakuman: true }
   };
   // 設定画面の項目。options は [値, 表示]
   var ITEMS = [
@@ -13,6 +13,7 @@
     { key: 'kiriage', label: '切り上げ満貫', options: [[false, 'なし'], [true, 'あり']], help: '30符4翻と60符3翻を満貫にする' },
     { key: 'round1000', label: '点数の単位', options: [[false, '100点'], [true, '1000点']], help: '1000点にすると、支払いを1000点単位に切り上げます' },
     { key: 'tsumoLoss', label: 'ツモ損', options: [[true, 'あり'], [false, 'なし']], help: '三人麻雀のツモ。なしは、いない1人の分を2人で折半', only3: true },
+    { key: 'doubleYakuman', label: 'ダブル役満', options: [[true, 'あり'], [false, 'なし']], help: '四暗刻単騎・国士十三面・純正九蓮・大四喜を2倍にする' },
     { key: 'doubleWindFu', label: '連風牌の雀頭', options: [[4, '4符'], [2, '2符']], help: '場風と自風が重なる牌を雀頭にしたとき' }
   ];
 

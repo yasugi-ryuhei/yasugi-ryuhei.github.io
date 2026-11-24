@@ -6,7 +6,8 @@
   var EAST = 27, HAKU = 31, HATSU = 32, CHUN = 33;
   var WIND_NAMES = ['東', '南', '西', '北'];
   // 赤ドラは 34=赤五萬, 35=赤五筒, 36=赤五索 で表す
-  var DEFAULT_RULES = { players: 4, aka: 0, kuitan: true, kiriage: false, round1000: false, tsumoLoss: true, doubleWindFu: 4 };
+  var DEFAULT_RULES = { players: 4, aka: 0, kuitan: true, kiriage: false, round1000: false, tsumoLoss: true, doubleWindFu: 4, doubleYakuman: false };
+  var DOUBLE_YAKUMAN = ['四暗刻単騎', '大四喜', '純正九蓮宝燈', '国士無双十三面待ち'];
   function baseTile(t) { return t >= 34 ? [4, 13, 22][t - 34] : t; }
 
   function isHonor(t) { return t >= 27; }
@@ -30,7 +31,7 @@
     function up(n) { return Math.ceil(n / unit) * unit; }
     var three = rules.players === 3, noLoss = three && !rules.tsumoLoss;
     var base, limit = '';
-    if (yakumanCount) { base = 8000 * yakumanCount; limit = yakumanCount > 1 ? yakumanCount + '倍役満' : '役満'; }
+    if (yakumanCount) { base = 8000 * yakumanCount; limit = yakumanCount === 1 ? '役満' : yakumanCount === 2 ? 'ダブル役満' : yakumanCount === 3 ? 'トリプル役満' : yakumanCount + '倍役満'; }
     else if (han >= 13) { base = 8000; limit = '数え役満'; }
     else if (han >= 11) { base = 6000; limit = '三倍満'; }
     else if (han >= 8) { base = 4000; limit = '倍満'; }
@@ -146,7 +147,11 @@
         tiles.every(function (t) { return suitOf(t) === suitOf(tiles[0]); })) {
       var c = [0, 0, 0, 0, 0, 0, 0, 0, 0];
       tiles.forEach(function (t) { c[numOf(t)]++; });
-      if (c[0] >= 3 && c[8] >= 3 && c.slice(1, 8).every(function (x) { return x >= 1; })) yakuman.push('九蓮宝燈');
+      if (c[0] >= 3 && c[8] >= 3 && c.slice(1, 8).every(function (x) { return x >= 1; })) {
+        // 和了牌を除いた13枚が 1112345678999 なら純正（9面待ち）
+        c[numOf(hand.winTile)]--;
+        yakuman.push(c.join('') === '311111113' ? '純正九蓮宝燈' : '九蓮宝燈');
+      }
     }
 
     // 符
@@ -240,9 +245,17 @@
   }
 
   function finish(hand, yaku, yakuman, fu, fuItems, pair, groups, wait) {
-    var isDealer = hand.seatWind === EAST;
+    var isDealer = hand.seatWind === EAST, f = hand.flags, menzen = isMenzen(hand);
+    // 状況でつく役
+    if (hand.doubleRiichi) yaku.forEach(function (y) { if (y.name === '立直') { y.name = 'ダブル立直'; y.han = 2; } });
+    if (f.ippatsu && hand.riichi && menzen) yaku.push({ name: '一発', han: 1 });
+    if (f.rinshan && hand.tsumo) yaku.push({ name: '嶺上開花', han: 1 });
+    if (f.chankan && !hand.tsumo) yaku.push({ name: '槍槓', han: 1 });
+    if (f.haitei) yaku.push({ name: hand.tsumo ? '海底摸月' : '河底撈魚', han: 1 });
+    if (f.tenhou && hand.tsumo && menzen && !(hand.melds || []).length) yakuman.push(isDealer ? '天和' : '地和');
     if (yakuman.length) {
-      var ym = yakuman.length;
+      var ym = 0;
+      yakuman.forEach(function (n) { ym += hand._rules.doubleYakuman && DOUBLE_YAKUMAN.indexOf(n) >= 0 ? 2 : 1; });
       return {
         yaku: yakuman.map(function (n) { return { name: n, han: 13 }; }), yakuman: ym,
         han: 13 * ym, yakuHan: 13 * ym, dora: 0, fu: fu, fuItems: fuItems,
@@ -251,7 +264,7 @@
     }
     var yakuHan = yaku.reduce(function (s2, y) { return s2 + y.han; }, 0);
     if (yakuHan === 0) return null;
-    var dora = countDora(hand);
+    var dora = countDora(hand) + hand.extraDora;
     var han = yakuHan + dora + hand._aka;
     return {
       yaku: yaku, yakuman: 0, han: han, yakuHan: yakuHan, dora: dora, aka: hand._aka, fu: fu, fuItems: fuItems,
@@ -275,7 +288,8 @@
       closed: src.closed.map(norm), winTile: norm(src.winTile),
       melds: (src.melds || []).map(function (m) { return { type: m.type, tiles: m.tiles.map(norm) }; }),
       tsumo: src.tsumo, riichi: src.riichi, seatWind: src.seatWind, roundWind: src.roundWind,
-      doraIndicators: src.doraIndicators || [], _rules: rules || DEFAULT_RULES
+      doraIndicators: src.doraIndicators || [], _rules: rules || DEFAULT_RULES,
+      flags: src.flags || {}, doubleRiichi: !!src.doubleRiichi && !!src.riichi, extraDora: src.extraDora || 0
     };
     hand._aka = aka;
     var melds = hand.melds || [];
@@ -304,6 +318,13 @@
         if (ns === 1) yaku.push(su[3] ? { name: '混一色', han: 3 } : { name: '清一色', han: 6 });
         best = finish(hand, yaku, yakuman, 25, [{ label: '七対子は25符固定', fu: 25 }], -1, [], 'tanki');
       }
+    }
+
+    // 国士無双
+    var KOKUSHI = [0, 8, 9, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33];
+    if (melds.length === 0 && KOKUSHI.every(function (t) { return counts[t] >= 1; }) &&
+        KOKUSHI.reduce(function (a, t) { return a + counts[t]; }, 0) === 14) {
+      best = finish(hand, [], [counts[hand.winTile] === 2 ? '国士無双十三面待ち' : '国士無双'], 30, [], -1, [], 'tanki');
     }
 
     for (var p = 0; p < 34; p++) {

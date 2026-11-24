@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>麻雀ドリル｜点数計算の練習・待ち牌チェック・点数早見表（無料）</title>
-  <meta name="description" content="麻雀の待ち牌と何切るのチェック、点数早見表、役一覧、点数計算の練習が無料で使えます。赤ドラの枚数や三人麻雀など、自分のルールに合わせて設定できます。登録は不要です。">
+  <meta name="description" content="麻雀の待ち牌と何切るのチェック、点数計算機、点数早見表、役一覧、点数計算の練習が無料で使えます。赤ドラの枚数や三人麻雀など、自分のルールに合わせて設定できます。登録は不要です。">
   <meta property="og:title" content="麻雀ドリル｜点数計算の練習・待ち牌チェック・点数早見表">
   <meta property="og:description" content="点数計算の練習、待ち牌と何切るのチェック、点数早見表。自分のルールに合わせて使えます。">
   <meta property="og:type" content="website">
@@ -16,6 +16,7 @@
       <span class="logo">麻雀ドリル</span>
       <nav class="tabs" role="tablist" aria-label="機能">
         <button type="button" role="tab" id="tab-machi" data-view="machi">待ち牌</button>
+        <button type="button" role="tab" id="tab-calc" data-view="calc">計算機</button>
         <button type="button" role="tab" id="tab-table" data-view="table">点数表</button>
         <button type="button" role="tab" id="tab-yaku" data-view="yaku">役一覧</button>
         <button type="button" role="tab" id="tab-practice" data-view="practice">練習</button>
@@ -65,6 +66,21 @@
       <div class="palette" id="palette"></div>
       <div class="card" id="machi-result" aria-live="polite"></div>
       <p class="note">13枚で待ち、14枚で何を切るかが出ます。鳴いた面子は入れずに、残りの手牌だけ入れてください。</p>
+    </section>
+
+    <!-- 点数計算機 -->
+    <section id="view-calc" hidden>
+      <h1>点数計算機</h1>
+      <div class="card">
+        <div class="machi-top"><span id="calc-count"></span><button type="button" class="link-button" id="calc-clear">全部消す</button></div>
+        <div class="hand machi-hand" id="calc-hand"></div>
+        <div class="melds" id="calc-melds" hidden></div>
+      </div>
+      <div class="seg wide mode-seg" id="calc-mode"></div>
+      <div class="palette" id="calc-palette"></div>
+      <div class="card calc-opts" id="calc-opts"></div>
+      <div class="card" id="calc-result" aria-live="polite"></div>
+      <p class="note">最後に入れた牌が和了牌になります。鳴きは「ポン」などを選んでから牌をタップ（チーは一番小さい牌）。</p>
     </section>
 
     <!-- 早見表 -->
