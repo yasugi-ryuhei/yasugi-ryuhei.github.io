@@ -4,7 +4,7 @@
   var E = window.MJEngine, G = window.MJGenerator, T = window.MJTiles, S = window.MJShanten, R = window.MJRules;
   var $ = function (id) { return document.getElementById(id); };
   var STORE_KEY = 'mj-drill-stats-v1';
-  var VIEWS = ['machi', 'calc', 'table', 'yaku', 'practice', 'rules'];
+  var VIEWS = ['yaku', 'table', 'calc', 'machi', 'practice', 'rules'];
   var rules = R.load();
   var state = { mode: null, question: null, answered: false, session: { total: 0, correct: 0, streak: 0 } };
   // 待ち牌ツールの初期表示（筒子・索子・東だけなので三人麻雀でも使える）
@@ -14,7 +14,7 @@
 
   // ---------- タブ ----------
   function show(view) {
-    if (VIEWS.indexOf(view) < 0) view = 'machi';
+    if (VIEWS.indexOf(view) < 0) view = 'yaku';
     VIEWS.forEach(function (v) {
       $('view-' + v).hidden = v !== view;
       $('tab-' + v).setAttribute('aria-selected', v === view ? 'true' : 'false');

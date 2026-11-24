@@ -24,8 +24,8 @@
       { name: '対々和', kana: 'トイトイ', closed: 2, open: 2, desc: '刻子が4つ', ex: '222m 777p 444s 666z' },
       { name: '三暗刻', kana: 'サンアンコー', closed: 2, open: 2, desc: '鳴いていない刻子が3つ', ex: '333m 888p 222s' },
       { name: '三色同刻', kana: 'サンショクドーコー', closed: 2, open: 2, desc: '同じ数字の刻子を3色で', ex: '444m 444p 444s' },
-      { name: '小三元', kana: 'ショウサンゲン', closed: 2, open: 2, desc: '三元牌の刻子2つと雀頭', ex: '555z 666z 77z' },
-      { name: '混老頭', kana: 'ホンロートー', closed: 2, open: 2, desc: '1・9・字牌だけ', ex: '111m 999p 111z 99s' },
+      { name: '小三元', kana: 'ショウサンゲン', closed: 2, open: 2, desc: '三元牌の刻子2つと雀頭。役牌2翻と合わせて実質4翻', ex: '555z 666z 77z' },
+      { name: '混老頭', kana: 'ホンロートー', closed: 2, open: 2, desc: '1・9・字牌だけ。対々和か七対子と必ず重なる', ex: '111m 999p 111z 99s' },
       { name: '三槓子', kana: 'サンカンツ', closed: 2, open: 2, desc: 'カンが3つ' },
       { name: 'ダブル立直', kana: 'ダブルリーチ', closed: 2, open: 0, desc: '最初の打牌でリーチ' }
     ] },
