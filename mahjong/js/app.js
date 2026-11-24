@@ -3,9 +3,10 @@
   'use strict';
   var E = window.MJEngine, G = window.MJGenerator, T = window.MJTiles, S = window.MJShanten, R = window.MJRules;
   var $ = function (id) { return document.getElementById(id); };
-  var STORE_KEY = 'mj-drill-stats-v1';
+  var MODE = Number(document.body.dataset.players) === 3 ? 3 : 4; // ページで四麻か三麻かが決まる
+  var STORE_KEY = 'mj-drill-stats-v1' + (MODE === 3 ? '-sanma' : '');
   var VIEWS = ['yaku', 'table', 'calc', 'machi', 'practice', 'rules'];
-  var rules = R.load();
+  var rules = R.load(MODE);
   var state = { mode: null, question: null, answered: false, session: { total: 0, correct: 0, streak: 0 } };
   // 待ち牌ツールの初期表示（筒子・索子・東だけなので三人麻雀でも使える）
   var machi = { tiles: [12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 27, 27] };
@@ -360,7 +361,7 @@
     $('yaku-body').innerHTML = Y.YAKU.map(function (g) {
       var off = g.han === 26 && !rules.doubleYakuman ? '<p class="note">設定で「ダブル役満なし」になっているので、役満として数えます。</p>' : '';
       return '<h2 id="yaku-' + g.han + '">' + title(g.han) + '</h2>' + off + '<div class="card yaku-list">' + g.list.map(function (y) {
-        var open = y.kuitan && !rules.kuitan ? 0 : y.open, badge;
+        var open = y.kuitan && !rules.kuitan ? 0 : y.open, badge, dead = y.no3 && MODE === 3;
         if (y.badge) badge = '<span class="han sub">' + y.badge + '</span>';
         else if (g.han === 26) badge = '<span class="han ym">' + (rules.doubleYakuman ? 'ダブル役満' : '役満') + '</span>';
         else if (g.han === 13) badge = '<span class="han ym">役満</span>';
@@ -371,7 +372,8 @@
         var ex = y.ex ? '<div class="yaku-ex">' + y.ex.split(' ').map(function (part) {
           return '<span>' + tiles(Y.parse(part)) + '</span>';
         }).join('') + '</div>' : '';
-        return '<div class="yaku"><div class="yaku-head"><div><strong>' + y.name + '</strong><small>' + y.kana + '</small></div><div class="hans">' + badge + '</div></div>' +
+        if (dead) badge = '<span class="han no">三麻では作れない</span>';
+        return '<div class="yaku' + (dead ? ' dead' : '') + '"><div class="yaku-head"><div><strong>' + y.name + '</strong><small>' + y.kana + '</small></div><div class="hans">' + badge + '</div></div>' +
           '<p>' + y.desc + '</p>' + ex + '</div>';
       }).join('') + '</div>';
     }).join('');
@@ -411,9 +413,9 @@
 
   // ---------- 設定 ----------
   function renderRules() {
-    $('preset-standard').setAttribute('aria-pressed', rules.players === 4 ? 'true' : 'false');
-    $('preset-sanma').setAttribute('aria-pressed', rules.players === 3 ? 'true' : 'false');
-    $('rule-items').innerHTML = R.ITEMS.filter(function (it) { return !it.only3 || rules.players === 3; }).map(function (it) {
+    $('rule-items').innerHTML = R.ITEMS.filter(function (it) {
+      return (!it.only3 || rules.players === 3) && (!it.when || rules[it.when]);
+    }).map(function (it) {
       return '<div class="rule"><div><strong>' + it.label + '</strong><small>' + it.help + '</small></div><div class="seg">' +
         it.options.map(function (o) {
           return '<button type="button" data-rule="' + it.key + '" data-val="' + o[0] + '" aria-pressed="' +
@@ -422,7 +424,7 @@
     }).join('');
   }
   function setRule(key, raw) {
-    rules[key] = raw === 'true' ? true : raw === 'false' ? false : Number(raw);
+    rules[key] = raw === 'true' ? true : raw === 'false' ? false : isNaN(Number(raw)) ? raw : Number(raw);
     R.save(rules);
     renderRules();
   }
@@ -445,7 +447,7 @@
       var target = $(d.jump);
       window.scrollTo(0, target.getBoundingClientRect().top + window.pageYOffset - document.querySelector('.site-header').offsetHeight - 8);
     }
-    else if (d.preset) { rules = R.copy(R.PRESETS[d.preset]); R.save(rules); renderRules(); }
+    else if (t.id === 'rule-reset') { rules = R.defaults(MODE); R.save(rules); renderRules(); }
     else if (d.rule) setRule(d.rule, d.val);
     else if (d.side) {
       $('table-child').setAttribute('aria-pressed', d.side === 'child' ? 'true' : 'false');

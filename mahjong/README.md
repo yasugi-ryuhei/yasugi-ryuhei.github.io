@@ -14,6 +14,8 @@
 | `/mahjong/practice/` | 点数計算の練習 |
 | `/mahjong/settings/` | ルール設定 |
 
+三人麻雀は `/mahjong/sanma/` の下に同じ構成であります（`/mahjong/sanma/calculator/` など）。四麻と三麻のルール設定は別々に保存されます。
+
 ## 編集のしかた
 各ページのHTMLは `build.js` が `src/` から作ります。出力された `index.html` などは直接編集しません。
 

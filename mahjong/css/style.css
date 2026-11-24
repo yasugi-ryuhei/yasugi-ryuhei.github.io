@@ -234,3 +234,11 @@ h1 { font-size: 1.3rem; }
 a.logo { text-decoration: none; }
 a.rule-bar { text-decoration: none; box-sizing: border-box; }
 .about { margin-top: 20px; }
+
+/* 四麻・三麻の切り替え */
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mode-switch { display: inline-flex; border: 1px solid rgba(255, 255, 255, .45); border-radius: 99px; overflow: hidden; }
+.mode-switch a { color: #cfe5d8; text-decoration: none; font-size: .8rem; font-weight: 700; padding: 2px 14px; }
+.mode-switch a[aria-current="true"] { background: #ffe9a8; color: #3d2c00; }
+.yaku.dead { opacity: .45; }
+.reset { display: block; margin: 14px auto 0; font-weight: 400; text-decoration: underline; }

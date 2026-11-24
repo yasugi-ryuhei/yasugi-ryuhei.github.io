@@ -254,3 +254,21 @@ test('三人麻雀の北抜きドラ: 1枚1翻、北がドラなら2翻分', () 
     assert.strictEqual(E.evaluate(q.hand, sanma).score.text, q.answer);
   }
 });
+
+test('1000点単位の丸め方: 切り上げ・四捨五入・五捨六入', () => {
+  const r = (mode) => ({ ...R.PRESETS.sanma, round1000: true, roundMode: mode });
+  const ron = (han, fu, mode) => E.calcScore(han, fu, false, false, 0, r(mode)).text;
+  assert.deepStrictEqual(['ceil', 'half', 'five6'].map((m) => ron(1, 40, m)), ['2000', '1000', '1000']); // 1300
+  assert.deepStrictEqual(['ceil', 'half', 'five6'].map((m) => ron(1, 50, m)), ['2000', '2000', '2000']); // 1600
+  assert.deepStrictEqual(['ceil', 'half', 'five6'].map((m) => ron(1, 30, m)), ['1000', '1000', '1000']); // 1000
+  assert.strictEqual(E.calcScore(1, 30, true, false, 0, r('five6')).text, '1000');  // 親1500 → 五捨六入で1000
+  assert.strictEqual(E.calcScore(1, 30, true, false, 0, r('half')).text, '2000');
+  assert.strictEqual(E.calcScore(1, 30, false, true, 0, r('half')).text, '1000-1000'); // 300・500 でも最低1000
+});
+
+test('設定の初期値: 四麻と三麻で別', () => {
+  assert.strictEqual(R.load(4).players, 4);
+  assert.strictEqual(R.load(3).players, 3);
+  assert.strictEqual(R.load(3).nukidora, true);
+  assert.ok(!R.load(4).nukidora);
+});

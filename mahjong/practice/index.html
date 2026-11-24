@@ -13,10 +13,16 @@
   <meta property="og:site_name" content="麻雀ドリル">
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body data-view="practice">
+<body data-view="practice" data-players="4">
   <header class="site-header">
     <div class="inner">
-      <a class="logo" href="../">麻雀ドリル</a>
+      <div class="brand">
+        <a class="logo" href="../">麻雀ドリル</a>
+        <div class="mode-switch" aria-label="人数">
+          <a href="../practice/" aria-current="true">四麻</a>
+          <a href="../sanma/practice/">三麻</a>
+        </div>
+      </div>
       <nav class="tabs" aria-label="機能">
         <a href="../">役一覧</a>
         <a href="../score-table/">点数表</a>

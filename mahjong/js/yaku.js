@@ -18,7 +18,7 @@
     ] },
     { han: 2, list: [
       { name: '七対子', kana: 'チートイツ', closed: 2, open: 0, desc: '対子が7つ（25符）', ex: '11m 44m 66p 99p 22s 77s 55z' },
-      { name: '三色同順', kana: 'サンショク', closed: 2, open: 1, desc: '同じ数字の順子を3色で', ex: '234m 234p 234s' },
+      { name: '三色同順', kana: 'サンショク', closed: 2, open: 1, no3: true, desc: '同じ数字の順子を3色で', ex: '234m 234p 234s' },
       { name: '一気通貫', kana: 'イッツー', closed: 2, open: 1, desc: '同じ色で1〜9', ex: '123m 456m 789m' },
       { name: '混全帯么九', kana: 'チャンタ', closed: 2, open: 1, desc: '全部の面子と雀頭に1・9・字牌', ex: '123m 789p 111z 99s' },
       { name: '対々和', kana: 'トイトイ', closed: 2, open: 2, desc: '刻子が4つ', ex: '222m 777p 444s 666z' },

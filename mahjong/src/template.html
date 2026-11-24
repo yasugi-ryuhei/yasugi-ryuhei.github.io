@@ -13,10 +13,15 @@
   <meta property="og:site_name" content="麻雀ドリル">
   <link rel="stylesheet" href="{{ROOT}}css/style.css">
 </head>
-<body data-view="{{VIEW}}">
+<body data-view="{{VIEW}}" data-players="{{PLAYERS}}">
   <header class="site-header">
     <div class="inner">
-      <a class="logo" href="{{ROOT}}">麻雀ドリル</a>
+      <div class="brand">
+        <a class="logo" href="{{BASE}}">麻雀ドリル</a>
+        <div class="mode-switch" aria-label="人数">
+{{MODES}}
+        </div>
+      </div>
       <nav class="tabs" aria-label="機能">
 {{TABS}}
       </nav>
