@@ -178,3 +178,29 @@ h1 { font-size: 1.3rem; }
   color: #fff; background: var(--felt); border: 0; border-radius: 10px; cursor: pointer;
 }
 .primary:hover, .primary:focus-visible { background: var(--felt-dark); outline: none; }
+
+/* タブ5つ: ロゴの下に1列で並べる */
+.site-header .inner { flex-direction: column; align-items: stretch; gap: 4px; padding-top: 6px; padding-bottom: 6px; }
+.logo { font-size: .85rem; opacity: .9; }
+.tabs { justify-content: space-between; gap: 2px; }
+.tabs button { flex: 1; padding: 7px 2px; font-size: .9rem; }
+#machi-result { margin-top: 12px; }
+#machi-result > :first-child { margin-top: 0; }
+
+/* 役一覧 */
+.yaku-list { padding-top: 4px; padding-bottom: 4px; }
+.yaku { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.yaku:last-child { border-bottom: 0; }
+.yaku-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.yaku-head strong { font-size: 1.05rem; margin-right: 8px; }
+.yaku-head small { color: var(--muted); font-size: .75rem; white-space: nowrap; }
+.yaku-head > div:first-child { min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; }
+.hans { display: flex; gap: 4px; flex: none; }
+.han { font-size: .8rem; font-weight: 700; color: #fff; background: var(--felt); border-radius: 99px; padding: 1px 10px; white-space: nowrap; }
+.han.sub { background: #e7f3ec; color: var(--felt-dark); }
+.han.no { background: #f1eee3; color: var(--muted); }
+.han.ym { background: var(--accent); }
+.yaku p { margin: 2px 0 0; font-size: .85rem; color: var(--muted); }
+.yaku-ex { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; }
+.yaku-ex span { display: flex; gap: 1px; }
+.yaku-ex .tile { width: 21px; flex: none; filter: none; }

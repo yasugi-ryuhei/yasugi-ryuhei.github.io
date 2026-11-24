@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>麻雀ドリル｜点数計算の練習・待ち牌チェック・点数早見表（無料）</title>
-  <meta name="description" content="麻雀の点数計算の練習、待ち牌と何切るのチェック、点数早見表が無料で使えます。赤ドラの枚数や三人麻雀など、自分のルールに合わせて設定できます。登録は不要です。">
+  <meta name="description" content="麻雀の待ち牌と何切るのチェック、点数早見表、役一覧、点数計算の練習が無料で使えます。赤ドラの枚数や三人麻雀など、自分のルールに合わせて設定できます。登録は不要です。">
   <meta property="og:title" content="麻雀ドリル｜点数計算の練習・待ち牌チェック・点数早見表">
   <meta property="og:description" content="点数計算の練習、待ち牌と何切るのチェック、点数早見表。自分のルールに合わせて使えます。">
   <meta property="og:type" content="website">
@@ -15,9 +15,10 @@
     <div class="inner">
       <span class="logo">麻雀ドリル</span>
       <nav class="tabs" role="tablist" aria-label="機能">
-        <button type="button" role="tab" id="tab-practice" data-view="practice">練習</button>
         <button type="button" role="tab" id="tab-machi" data-view="machi">待ち牌</button>
-        <button type="button" role="tab" id="tab-table" data-view="table">早見表</button>
+        <button type="button" role="tab" id="tab-table" data-view="table">点数表</button>
+        <button type="button" role="tab" id="tab-yaku" data-view="yaku">役一覧</button>
+        <button type="button" role="tab" id="tab-practice" data-view="practice">練習</button>
         <button type="button" role="tab" id="tab-rules" data-view="rules">設定</button>
       </nav>
     </div>
@@ -25,7 +26,7 @@
 
   <main class="inner">
     <!-- 練習 -->
-    <section id="view-practice">
+    <section id="view-practice" hidden>
       <div id="home">
         <h1>点数計算の練習</h1>
         <div class="modes">
@@ -55,14 +56,14 @@
     </section>
 
     <!-- 待ち牌 -->
-    <section id="view-machi" hidden>
+    <section id="view-machi">
       <h1>待ち牌チェック</h1>
       <div class="card">
         <div class="machi-top"><span id="machi-count"></span><button type="button" class="link-button" id="machi-clear">全部消す</button></div>
         <div class="hand machi-hand" id="machi-hand"></div>
-        <div id="machi-result" aria-live="polite"></div>
       </div>
       <div class="palette" id="palette"></div>
+      <div class="card" id="machi-result" aria-live="polite"></div>
       <p class="note">13枚で待ち、14枚で何を切るかが出ます。鳴いた面子は入れずに、残りの手牌だけ入れてください。</p>
     </section>
 
@@ -75,6 +76,13 @@
       </div>
       <p class="note">上がロン、下がツモ。<span id="table-rule"></span></p>
       <div id="table-body"></div>
+    </section>
+
+    <!-- 役一覧 -->
+    <section id="view-yaku" hidden>
+      <h1>役一覧</h1>
+      <div class="seg wide" id="yaku-jump"></div>
+      <div id="yaku-body"></div>
     </section>
 
     <!-- 設定 -->
@@ -96,6 +104,7 @@
   <script src="js/shanten.js"></script>
   <script src="js/rules.js"></script>
   <script src="js/tiles.js"></script>
+  <script src="js/yaku.js"></script>
   <script src="js/app.js"></script>
   <script>
     // モード選択の絵

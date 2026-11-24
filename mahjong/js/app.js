@@ -4,7 +4,7 @@
   var E = window.MJEngine, G = window.MJGenerator, T = window.MJTiles, S = window.MJShanten, R = window.MJRules;
   var $ = function (id) { return document.getElementById(id); };
   var STORE_KEY = 'mj-drill-stats-v1';
-  var VIEWS = ['practice', 'machi', 'table', 'rules'];
+  var VIEWS = ['machi', 'table', 'yaku', 'practice', 'rules'];
   var rules = R.load();
   var state = { mode: null, question: null, answered: false, session: { total: 0, correct: 0, streak: 0 } };
   // 待ち牌ツールの初期表示（筒子・索子・東だけなので三人麻雀でも使える）
@@ -14,7 +14,7 @@
 
   // ---------- タブ ----------
   function show(view) {
-    if (VIEWS.indexOf(view) < 0) view = 'practice';
+    if (VIEWS.indexOf(view) < 0) view = 'machi';
     VIEWS.forEach(function (v) {
       $('view-' + v).hidden = v !== view;
       $('tab-' + v).setAttribute('aria-selected', v === view ? 'true' : 'false');
@@ -22,6 +22,7 @@
     if (view === 'practice') renderHome();
     if (view === 'machi') renderMachi();
     if (view === 'table') renderTable();
+    if (view === 'yaku') renderYaku();
     if (view === 'rules') renderRules();
     window.scrollTo(0, 0);
   }
@@ -231,6 +232,31 @@
       }
     }
     $('machi-result').innerHTML = out;
+    $('machi-result').hidden = !out;
+  }
+
+  // ---------- 役一覧 ----------
+  function renderYaku() {
+    var Y = window.MJYaku;
+    function title(han) { return han === 13 ? '役満' : han + '翻'; }
+    $('yaku-jump').innerHTML = Y.YAKU.map(function (g) {
+      return '<button type="button" data-jump="yaku-' + g.han + '">' + title(g.han) + '</button>';
+    }).join('');
+    $('yaku-body').innerHTML = Y.YAKU.map(function (g) {
+      return '<h2 id="yaku-' + g.han + '">' + title(g.han) + '</h2><div class="card yaku-list">' + g.list.map(function (y) {
+        var open = y.kuitan && !rules.kuitan ? 0 : y.open, badge;
+        if (g.han === 13) badge = '<span class="han ym">役満</span>';
+        else {
+          badge = '<span class="han">' + y.closed + '翻</span>' +
+            (open ? (open !== y.closed ? '<span class="han sub">鳴き' + open + '翻</span>' : '') : '<span class="han no">鳴き不可</span>');
+        }
+        var ex = y.ex ? '<div class="yaku-ex">' + y.ex.split(' ').map(function (part) {
+          return '<span>' + tiles(Y.parse(part)) + '</span>';
+        }).join('') + '</div>' : '';
+        return '<div class="yaku"><div class="yaku-head"><div><strong>' + y.name + '</strong><small>' + y.kana + '</small></div><div class="hans">' + badge + '</div></div>' +
+          '<p>' + y.desc + '</p>' + ex + '</div>';
+      }).join('') + '</div>';
+    }).join('');
   }
 
   // ---------- 早見表 ----------
@@ -296,6 +322,10 @@
     else if (d.add) { machi.tiles.push(Number(d.add)); renderMachi(); }
     else if (d.remove) { machi.tiles.splice(Number(d.remove), 1); renderMachi(); }
     else if (t.id === 'machi-clear') { machi.tiles = []; renderMachi(); }
+    else if (d.jump) {
+      var target = $(d.jump);
+      window.scrollTo(0, target.getBoundingClientRect().top + window.pageYOffset - document.querySelector('.site-header').offsetHeight - 8);
+    }
     else if (d.preset) { rules = R.copy(R.PRESETS[d.preset]); R.save(rules); renderRules(); }
     else if (d.rule) setRule(d.rule, d.val);
     else if (d.side) {
