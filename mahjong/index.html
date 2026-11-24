@@ -3,57 +3,89 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>麻雀の点数計算 練習問題（無料）｜麻雀ドリル</title>
-  <meta name="description" content="麻雀の点数計算を無料で練習できるサイトです。翻と符から点数を答える問題と、手牌から役・符・点数を答える実戦問題を、解説つきで何問でも解けます。登録は不要です。">
-  <meta property="og:title" content="麻雀の点数計算 練習問題（無料）｜麻雀ドリル">
-  <meta property="og:description" content="翻と符の早見問題と、手牌からの実戦問題。役と符の内訳つきで何問でも練習できます。">
+  <title>麻雀ドリル｜点数計算の練習・待ち牌チェック・点数早見表（無料）</title>
+  <meta name="description" content="麻雀の点数計算の練習、待ち牌と何切るのチェック、点数早見表が無料で使えます。赤ドラの枚数や三人麻雀など、自分のルールに合わせて設定できます。登録は不要です。">
+  <meta property="og:title" content="麻雀ドリル｜点数計算の練習・待ち牌チェック・点数早見表">
+  <meta property="og:description" content="点数計算の練習、待ち牌と何切るのチェック、点数早見表。自分のルールに合わせて使えます。">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="site-header">
     <div class="inner">
-      <a class="logo" href="./">麻雀ドリル</a>
-      <nav><a href="score-table.html">点数早見表</a></nav>
+      <span class="logo">麻雀ドリル</span>
+      <nav class="tabs" role="tablist" aria-label="機能">
+        <button type="button" role="tab" id="tab-practice" data-view="practice">練習</button>
+        <button type="button" role="tab" id="tab-machi" data-view="machi">待ち牌</button>
+        <button type="button" role="tab" id="tab-table" data-view="table">早見表</button>
+        <button type="button" role="tab" id="tab-rules" data-view="rules">設定</button>
+      </nav>
     </div>
   </header>
 
   <main class="inner">
-    <section id="home">
-      <h1>麻雀の点数計算を練習する</h1>
-      <p class="lead">問題は毎回自動で作られるので、何問でも無料で解けます。登録は不要で、成績はこの端末に保存されます。</p>
-      <div class="modes">
-        <button type="button" class="mode" data-start="table">
-          <span class="level">はじめての人</span>
-          <strong>翻と符から点数</strong>
-          <p>「子・ロン・30符3翻」のような条件から点数を答えます。点数表を覚える練習です。</p>
-          <small id="stat-table"></small>
-        </button>
-        <button type="button" class="mode" data-start="hand">
-          <span class="level">実戦向け</span>
-          <strong>手牌から点数</strong>
-          <p>和了した手牌を見て、役と符を数えて点数を答えます。役と符の内訳つきで解説します。</p>
-          <small id="stat-hand"></small>
-        </button>
+    <!-- 練習 -->
+    <section id="view-practice">
+      <div id="home">
+        <h1>点数計算の練習</h1>
+        <div class="modes">
+          <button type="button" class="mode" data-start="table">
+            <span class="mode-art"><b>30</b>符<b>3</b>翻</span>
+            <span class="mode-text"><strong>翻と符から</strong><small id="stat-table"></small></span>
+          </button>
+          <button type="button" class="mode" data-start="hand">
+            <span class="mode-art tiles-art" id="art-hand"></span>
+            <span class="mode-text"><strong>手牌から</strong><small id="stat-hand"></small></span>
+          </button>
+        </div>
+        <button type="button" class="rule-bar" data-view="rules"><span id="rule-summary"></span><i>変更</i></button>
       </div>
 
-      <h2>点数計算の流れ</h2>
-      <p>点数は「翻」と「符」の2つで決まります。翻は役とドラの数、符は和了の形や待ち方でつく点です。まず翻を数え、4翻以下なら符も数えて、<a href="score-table.html">点数早見表</a>に当てはめます。5翻以上は符に関係なく満貫以上になります。</p>
-      <h2>このサイトのルール</h2>
-      <p class="note">喰いタンあり、赤ドラなし、切り上げ満貫なし、連風牌の雀頭は4符で出題しています。一発と裏ドラは出題しません。</p>
+      <div id="quiz" hidden>
+        <div class="quiz-head">
+          <button type="button" class="link-button" data-home>← 戻る</button>
+          <p id="progress" aria-live="polite"></p>
+        </div>
+        <div class="card">
+          <div id="question"></div>
+          <div id="options" class="options"></div>
+          <div id="result" aria-live="polite" hidden></div>
+        </div>
+      </div>
     </section>
 
-    <section id="quiz" hidden>
-      <div class="quiz-head">
-        <h1 id="quiz-title"></h1>
-        <button type="button" class="link-button" data-home>モード選択に戻る</button>
-      </div>
-      <p id="progress" aria-live="polite"></p>
+    <!-- 待ち牌 -->
+    <section id="view-machi" hidden>
+      <h1>待ち牌チェック</h1>
       <div class="card">
-        <div id="question"></div>
-        <div id="options" class="options"></div>
-        <div id="result" aria-live="polite" hidden></div>
+        <div class="machi-top"><span id="machi-count"></span><button type="button" class="link-button" id="machi-clear">全部消す</button></div>
+        <div class="hand machi-hand" id="machi-hand"></div>
+        <div id="machi-result" aria-live="polite"></div>
       </div>
+      <div class="palette" id="palette"></div>
+      <p class="note">13枚で待ち、14枚で何を切るかが出ます。鳴いた面子は入れずに、残りの手牌だけ入れてください。</p>
+    </section>
+
+    <!-- 早見表 -->
+    <section id="view-table" hidden>
+      <h1>点数早見表</h1>
+      <div class="seg wide">
+        <button type="button" id="table-child" data-side="child" aria-pressed="true">子</button>
+        <button type="button" id="table-dealer" data-side="dealer" aria-pressed="false">親</button>
+      </div>
+      <p class="note">上がロン、下がツモ。<span id="table-rule"></span></p>
+      <div id="table-body"></div>
+    </section>
+
+    <!-- 設定 -->
+    <section id="view-rules" hidden>
+      <h1>ルール設定</h1>
+      <p class="note">わからなければ「四人麻雀」のままで大丈夫です。もっとも一般的なルールになっています。</p>
+      <div class="seg wide">
+        <button type="button" id="preset-standard" data-preset="standard">四人麻雀</button>
+        <button type="button" id="preset-sanma" data-preset="sanma">三人麻雀</button>
+      </div>
+      <div class="card" id="rule-items"></div>
     </section>
   </main>
 
@@ -61,7 +93,13 @@
 
   <script src="js/engine.js"></script>
   <script src="js/generator.js"></script>
+  <script src="js/shanten.js"></script>
+  <script src="js/rules.js"></script>
   <script src="js/tiles.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    // モード選択の絵
+    document.getElementById('art-hand').innerHTML = [12, 13, 14, 32, 32].map(function (t) { return MJTiles.tileSVG(t); }).join('');
+  </script>
 </body>
 </html>

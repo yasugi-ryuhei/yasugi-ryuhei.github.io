@@ -141,3 +141,70 @@ test('出題: 1000問つくっても壊れず、選択肢は4つで正解を1つ
     }
   }
 });
+
+const S = require('../js/shanten.js');
+const R = require('../js/rules.js');
+const cnt = (str) => { const c = new Array(34).fill(0); parse(str).forEach((t) => c[t]++); return c; };
+
+test('シャンテン数', () => {
+  assert.strictEqual(S.shanten(cnt('123m456p789s1122z')), 0);
+  assert.strictEqual(S.shanten(cnt('123m456p789s11222z')), -1);
+  assert.strictEqual(S.shanten(cnt('19m19p19s1234567z')), 0);
+  assert.strictEqual(S.shanten(cnt('1199m2288p3377s5z')), 0);
+  assert.strictEqual(S.shanten(cnt('147m258p369s1234z')), 6); // バラバラは七対子の6シャンテン
+  assert.strictEqual(S.shanten(cnt('2345m')), 0);  // 3面子を鳴いた後の単騎形
+});
+
+test('待ち牌: 残り枚数は手牌で使った分を引く、三面張は3種', () => {
+  const u = S.ukeire(cnt('123m456p78s99s555z'));
+  assert.deepStrictEqual(u.tiles.map((x) => x.tile), [23, 26]);
+  assert.strictEqual(u.total, 6); // 6索4枚 + 9索は手に2枚あるので残り2枚
+  const v = S.ukeire(cnt('23456m456p789s11z'));
+  assert.deepStrictEqual(v.tiles.map((x) => x.tile), [0, 3, 6]);
+});
+
+test('何を切るか: テンパイになる打牌が先頭に来る', () => {
+  const d = S.discards(cnt('123m456p78s99s555z1z'));
+  assert.strictEqual(d[0].discard, 27);
+  assert.strictEqual(d[0].shanten, 0);
+});
+
+test('ルール: 切り上げ満貫・1000点単位・三人麻雀のツモ', () => {
+  const std = E.DEFAULT_RULES;
+  assert.strictEqual(E.calcScore(4, 30, false, false, 0, { ...std, kiriage: true }).text, '8000');
+  assert.strictEqual(E.calcScore(3, 30, false, false, 0, { ...std, round1000: true }).text, '4000');
+  assert.strictEqual(E.calcScore(3, 30, false, true, 0, { ...std, round1000: true }).text, '1000-2000');
+  const sanma = { ...std, players: 3 };
+  assert.strictEqual(E.calcScore(5, 30, false, true, 0, sanma).total, 6000);       // ツモ損あり: 2000+4000
+  assert.strictEqual(E.calcScore(5, 30, false, true, 0, { ...sanma, tsumoLoss: false }).text, '3000-5000');
+  assert.strictEqual(E.calcScore(5, 30, true, true, 0, { ...sanma, tsumoLoss: false }).text, '6000オール');
+});
+
+test('ルール: 赤ドラは1枚1翻、喰いタンなしでは鳴きタンヤオは役なし', () => {
+  const h = hand('234m567p34s66s', '5s', { melds: [{ type: 'chi', tiles: [12, 35, 14] }] });
+  const r = E.evaluate(h);
+  assert.strictEqual(r.aka, 1);
+  assert.strictEqual(r.han, 2);
+  assert.strictEqual(E.evaluate(h, { ...E.DEFAULT_RULES, kuitan: false }), null);
+});
+
+test('出題: 各ルールで1000問ずつ作っても整合する', () => {
+  const variants = [R.PRESETS.standard, R.PRESETS.sanma,
+    { ...R.PRESETS.sanma, round1000: true, tsumoLoss: false }, { ...R.PRESETS.standard, aka: 4, kiriage: true, kuitan: false }];
+  variants.forEach((rules) => {
+    for (let i = 0; i < 1000; i++) {
+      const q = i % 2 ? G.makeHandQuestion(rules) : G.makeTableQuestion(rules);
+      assert.strictEqual(new Set(q.options).size, 4, JSON.stringify(q.options));
+      assert.ok(q.options.includes(q.answer));
+      if (q.hand) {
+        const all = q.hand.closed.concat([q.hand.winTile]);
+        q.hand.melds.forEach((m) => all.push(...m.tiles));
+        assert.ok(all.filter((t) => t >= 34).length <= rules.aka);
+        if (rules.players === 3) {
+          assert.ok(all.every((t) => !(t >= 1 && t <= 7) && t !== 34), '三人麻雀で二〜八萬は出ない');
+          assert.ok(q.hand.melds.every((m) => m.type !== 'chi'));
+        }
+      }
+    }
+  });
+});

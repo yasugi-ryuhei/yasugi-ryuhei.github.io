@@ -5,22 +5,30 @@
 
   var EAST = 27, HAKU = 31, HATSU = 32, CHUN = 33;
   var WIND_NAMES = ['東', '南', '西', '北'];
+  // 赤ドラは 34=赤五萬, 35=赤五筒, 36=赤五索 で表す
+  var DEFAULT_RULES = { players: 4, aka: 0, kuitan: true, kiriage: false, round1000: false, tsumoLoss: true, doubleWindFu: 4 };
+  function baseTile(t) { return t >= 34 ? [4, 13, 22][t - 34] : t; }
 
   function isHonor(t) { return t >= 27; }
   function suitOf(t) { return t >= 27 ? 3 : Math.floor(t / 9); }
   function numOf(t) { return t >= 27 ? -1 : t % 9; } // 0-8
   function isTerminal(t) { return t < 27 && (t % 9 === 0 || t % 9 === 8); }
   function isYaochu(t) { return isHonor(t) || isTerminal(t); }
-  function doraFromIndicator(ind) {
+  function doraFromIndicator(ind, rules) {
+    ind = baseTile(ind);
+    if (rules && rules.players === 3 && ind < 9) return ind === 0 ? 8 : 0; // 三人麻雀は一萬と九萬だけ
     if (ind < 27) return Math.floor(ind / 9) * 9 + ((ind % 9) + 1) % 9;
     if (ind <= 30) return 27 + ((ind - 27 + 1) % 4);
     return 31 + ((ind - 31 + 1) % 3);
   }
 
-  function ceil100(n) { return Math.ceil(n / 100) * 100; }
 
   // 翻・符から点数を出す
-  function calcScore(han, fu, isDealer, isTsumo, yakumanCount) {
+  function calcScore(han, fu, isDealer, isTsumo, yakumanCount, rules) {
+    rules = rules || DEFAULT_RULES;
+    var unit = rules.round1000 ? 1000 : 100;
+    function up(n) { return Math.ceil(n / unit) * unit; }
+    var three = rules.players === 3, noLoss = three && !rules.tsumoLoss;
     var base, limit = '';
     if (yakumanCount) { base = 8000 * yakumanCount; limit = yakumanCount > 1 ? yakumanCount + '倍役満' : '役満'; }
     else if (han >= 13) { base = 8000; limit = '数え役満'; }
@@ -30,19 +38,21 @@
     else {
       base = fu * Math.pow(2, han + 2);
       if (han >= 5 || base >= 2000) { base = 2000; limit = '満貫'; }
+      else if (rules.kiriage && ((han === 4 && fu === 30) || (han === 3 && fu === 60))) { base = 2000; limit = '満貫'; }
     }
     var res = { han: han, fu: fu, base: base, limit: limit, isDealer: isDealer, isTsumo: isTsumo };
     if (!isTsumo) {
-      res.total = ceil100(base * (isDealer ? 6 : 4));
+      res.total = up(base * (isDealer ? 6 : 4));
       res.text = String(res.total);
     } else if (isDealer) {
-      res.each = ceil100(base * 2);
-      res.total = res.each * 3;
+      // ツモ損なしの三人麻雀は、いない1人の分を2人で折半する
+      res.each = up(base * (noLoss ? 3 : 2));
+      res.total = res.each * (three ? 2 : 3);
       res.text = res.each + 'オール';
     } else {
-      res.fromChild = ceil100(base);
-      res.fromDealer = ceil100(base * 2);
-      res.total = res.fromChild * 2 + res.fromDealer;
+      res.fromChild = up(base * (noLoss ? 1.5 : 1));
+      res.fromDealer = up(base * (noLoss ? 2.5 : 2));
+      res.total = three ? res.fromChild + res.fromDealer : res.fromChild * 2 + res.fromDealer;
       res.text = res.fromChild + '-' + res.fromDealer;
     }
     return res;
@@ -94,7 +104,7 @@
   function countDora(hand) {
     var tiles = allTiles(hand), n = 0;
     (hand.doraIndicators || []).forEach(function (ind) {
-      var d = doraFromIndicator(ind);
+      var d = doraFromIndicator(ind, hand._rules);
       tiles.forEach(function (t) { if (t === d) n++; });
     });
     return n;
@@ -142,6 +152,7 @@
     // 符
     var fuItems = [{ label: '副底', fu: 20 }];
     var pairFu = yakuhaiValue(pair, hand) * 2;
+    if (pairFu === 4 && hand._rules.doubleWindFu === 2) pairFu = 2;
     var isPinfuShape = seqs.length === 4 && pairFu === 0 && wait === 'ryanmen';
     var pinfu = menzen && isPinfuShape;
     groups.forEach(function (g) {
@@ -150,9 +161,10 @@
       if (!g.open) f *= 2;
       if (isYaochu(g.tile)) f *= 2;
       var kind = g.type === 'kan' ? (g.open ? '明槓' : '暗槓') : (g.open ? '明刻' : '暗刻');
-      fuItems.push({ label: tileName(g.tile) + 'の' + kind, fu: f });
+      g.fu = f; g.kind = kind;
+      fuItems.push({ label: tileName(g.tile) + 'の' + kind, fu: f, group: true });
     });
-    if (pairFu) fuItems.push({ label: '役牌の雀頭', fu: pairFu });
+    if (pairFu) fuItems.push({ label: '役牌の雀頭', fu: pairFu, group: true });
     var waitLabels = { tanki: '単騎待ち', kanchan: 'カンチャン待ち', penchan: 'ペンチャン待ち' };
     if (waitLabels[wait]) fuItems.push({ label: waitLabels[wait], fu: 2 });
     if (hand.tsumo && !pinfu) fuItems.push({ label: 'ツモ', fu: 2 });
@@ -165,7 +177,7 @@
     if (hand.riichi && menzen) add('立直', 1, 0);
     if (hand.tsumo && menzen) add('門前清自摸和', 1, 0);
     if (pinfu) add('平和', 1, 0);
-    if (!tiles.some(isYaochu)) add('断么九', 1, 1);
+    if (!tiles.some(isYaochu)) add('断么九', 1, hand._rules.kuitan ? 1 : 0);
     if (menzen) {
       var seqCount = {};
       seqs.forEach(function (g) { seqCount[g.tile] = (seqCount[g.tile] || 0) + 1; });
@@ -222,7 +234,9 @@
       if (suits[3]) add('混一色', 3, 2); else add('清一色', 6, 5);
     }
 
-    return finish(hand, yaku, yakuman, fu, fuItems, pair, groups, wait);
+    var r = finish(hand, yaku, yakuman, fu, fuItems, pair, groups, wait);
+    if (r) r.pairFu = pairFu;
+    return r;
   }
 
   function finish(hand, yaku, yakuman, fu, fuItems, pair, groups, wait) {
@@ -232,16 +246,16 @@
       return {
         yaku: yakuman.map(function (n) { return { name: n, han: 13 }; }), yakuman: ym,
         han: 13 * ym, yakuHan: 13 * ym, dora: 0, fu: fu, fuItems: fuItems,
-        score: calcScore(13 * ym, fu, isDealer, hand.tsumo, ym), pair: pair, groups: groups, wait: wait
+        aka: 0, score: calcScore(13 * ym, fu, isDealer, hand.tsumo, ym, hand._rules), pair: pair, groups: groups, wait: wait
       };
     }
     var yakuHan = yaku.reduce(function (s2, y) { return s2 + y.han; }, 0);
     if (yakuHan === 0) return null;
     var dora = countDora(hand);
-    var han = yakuHan + dora;
+    var han = yakuHan + dora + hand._aka;
     return {
-      yaku: yaku, yakuman: 0, han: han, yakuHan: yakuHan, dora: dora, fu: fu, fuItems: fuItems,
-      score: calcScore(han, fu, isDealer, hand.tsumo, 0), pair: pair, groups: groups, wait: wait
+      yaku: yaku, yakuman: 0, han: han, yakuHan: yakuHan, dora: dora, aka: hand._aka, fu: fu, fuItems: fuItems,
+      score: calcScore(han, fu, isDealer, hand.tsumo, 0, hand._rules), pair: pair, groups: groups, wait: wait
     };
   }
 
@@ -253,7 +267,17 @@
   }
 
   // 手牌を評価して最も高い解釈を返す。役がなければ null
-  function evaluate(hand) {
+  function evaluate(src, rules) {
+    // 赤ドラを普通の5に直してから判定する
+    var aka = 0;
+    function norm(t) { if (t >= 34) aka++; return baseTile(t); }
+    var hand = {
+      closed: src.closed.map(norm), winTile: norm(src.winTile),
+      melds: (src.melds || []).map(function (m) { return { type: m.type, tiles: m.tiles.map(norm) }; }),
+      tsumo: src.tsumo, riichi: src.riichi, seatWind: src.seatWind, roundWind: src.roundWind,
+      doraIndicators: src.doraIndicators || [], _rules: rules || DEFAULT_RULES
+    };
+    hand._aka = aka;
     var melds = hand.melds || [];
     var menzen = isMenzen(hand);
     var counts = new Array(34).fill(0);
@@ -304,10 +328,11 @@
         });
         placements.forEach(function (pl) {
           var groups = closedGroups.map(function (g, idx) {
+            // 鳴いた面子は毎回作り直す（符の書き込みが他の解釈に残らないように）
             // ロンで完成した刻子は明刻扱い
             var open = !hand.tsumo && pl.idx === idx && g.type === 'tri';
-            return { type: g.type, tile: g.tile, open: open };
-          }).concat(calledGroups);
+            return { type: g.type, tile: g.tile, open: open, win: pl.idx === idx };
+          }).concat(melds.map(meldToGroup));
           var r = evalPattern(hand, p, groups, pl.wait, menzen);
           if (r && better(r, best)) best = r;
         });
@@ -317,6 +342,7 @@
   }
 
   function tileName(t) {
+    if (t >= 34) return '赤五' + '萬筒索'[t - 34];
     if (t < 27) return '一二三四五六七八九'[t % 9] + '萬筒索'[Math.floor(t / 9)];
     return '東南西北白發中'[t - 27];
   }
@@ -324,7 +350,7 @@
   var api = {
     evaluate: evaluate, calcScore: calcScore, doraFromIndicator: doraFromIndicator,
     tileName: tileName, isYaochu: isYaochu, isHonor: isHonor, suitOf: suitOf, numOf: numOf,
-    isMenzen: isMenzen, WIND_NAMES: WIND_NAMES, EAST: EAST
+    isMenzen: isMenzen, WIND_NAMES: WIND_NAMES, EAST: EAST, DEFAULT_RULES: DEFAULT_RULES, baseTile: baseTile
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MJEngine = api;

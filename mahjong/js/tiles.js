@@ -34,7 +34,11 @@
     9: X.reduce(function (a, x) { return a.concat([[x, 11, x === 20 ? RED : GREEN], [x, 28, x === 20 ? RED : GREEN], [x, 45, x === 20 ? RED : GREEN]]); }, [])
   };
 
-  function face(t) {
+  function face(t, red) {
+    if (red) {
+      // 赤ドラは同じ図柄をすべて赤で描く
+      return face(t).replace(/fill="#(?!fff)[0-9a-f]{6}"/g, 'fill="' + RED + '"');
+    }
     if (t < 9) {
       return '<text x="20" y="24" font-size="22" fill="' + INK + '" ' + FONT + '>' + KANJI[t] + '</text>' +
         '<text x="20" y="49" font-size="22" fill="' + RED + '" ' + FONT + '>萬</text>';
@@ -72,7 +76,8 @@
     var label = opts.back ? '裏向きの牌' : root.MJEngine.tileName(t);
     var body = opts.back
       ? '<rect x="1" y="1" width="38" height="54" rx="5" fill="#e0a13a" stroke="#9c6b17" stroke-width="1.5"/>'
-      : '<rect x="1" y="1" width="38" height="54" rx="5" fill="#fffdf6" stroke="#b9b29f" stroke-width="1.5"/>' + face(t);
+      : '<rect x="1" y="1" width="38" height="54" rx="5" fill="#fffdf6" stroke="#b9b29f" stroke-width="1.5"/>' +
+        (t >= 34 ? face([4, 13, 22][t - 34], true) : face(t));
     return '<svg class="tile' + (opts.cls ? ' ' + opts.cls : '') + '" viewBox="0 0 40 56" role="img" aria-label="' + label + '">' + body + '</svg>';
   }
 
