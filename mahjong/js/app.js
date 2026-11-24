@@ -13,19 +13,14 @@
   function tiles(list, opts) { return list.map(function (t) { return T.tileSVG(t, opts); }).join(''); }
 
   // ---------- タブ ----------
+  // ページごとに1つの機能を表示する（body の data-view で決まる）
   function show(view) {
-    if (VIEWS.indexOf(view) < 0) view = 'yaku';
-    VIEWS.forEach(function (v) {
-      $('view-' + v).hidden = v !== view;
-      $('tab-' + v).setAttribute('aria-selected', v === view ? 'true' : 'false');
-    });
     if (view === 'practice') renderHome();
     if (view === 'machi') renderMachi();
     if (view === 'table') renderTable();
     if (view === 'calc') renderCalc();
     if (view === 'yaku') renderYaku();
     if (view === 'rules') renderRules();
-    window.scrollTo(0, 0);
   }
 
   // ---------- 成績 ----------
@@ -52,6 +47,7 @@
         : '';
     });
     $('rule-summary').textContent = R.summary(rules);
+    $('art-hand').innerHTML = tiles([12, 13, 14, 32, 32]);
     $('home').hidden = false;
     $('quiz').hidden = true;
   }
@@ -84,6 +80,7 @@
       html += '<div class="chips">' + chip(E.WIND_NAMES[h.roundWind - 27] + '場') +
         chip(E.WIND_NAMES[h.seatWind - 27] + '家・' + (dealer ? '親' : '子'), dealer ? 'dealer' : '') +
         (h.riichi ? chip('リーチ', 'riichi') : '') + chip(h.tsumo ? 'ツモ' : 'ロン') +
+        (h.nuki ? chip('北抜き ' + h.nuki + '枚', 'dora-chip') : '') +
         '<span class="dora">ドラ表示' + tiles(h.doraIndicators) + '</span></div>';
       html += '<div class="hand">' + tiles(h.closed) +
         '<span class="win"><em>' + (h.tsumo ? 'ツモ' : 'ロン') + '</em>' + T.tileSVG(h.winTile) + '</span></div>';
@@ -142,7 +139,8 @@
     html += '<h3>役<em>' + (r.yakuman ? s.limit : r.han + '翻') + '</em></h3><div class="chips">' +
       r.yaku.map(function (y) { return chip(y.name + (r.yakuman ? '' : '<b>' + y.han + '</b>')); }).join('') +
       (r.dora ? chip('ドラ<b>' + r.dora + '</b>', 'dora-chip') : '') +
-      (r.aka ? chip('赤ドラ<b>' + r.aka + '</b>', 'dora-chip') : '') + '</div>';
+      (r.aka ? chip('赤ドラ<b>' + r.aka + '</b>', 'dora-chip') : '') +
+      (r.nuki ? chip('北抜きドラ<b>' + r.nuki + '</b>', 'dora-chip') : '') + '</div>';
 
     if (!s.limit) {
       var raw = r.fuItems.reduce(function (a, x) { return a + x.fu; }, 0);
@@ -183,7 +181,7 @@
   // ---------- 点数計算機 ----------
   // 初期表示はリーチ・平和・タンヤオの例
   var calc = { tiles: [12, 13, 14, 14, 15, 16, 19, 20, 21, 22, 22, 23, 24, 25], melds: [], mode: 'hand',
-    tsumo: false, riichi: 1, seat: 28, round: 27, dora: 0, flags: {} };
+    tsumo: false, riichi: 1, seat: 28, round: 27, dora: 0, nuki: 0, flags: {} };
   var MELD_NAMES = { chi: 'チー', pon: 'ポン', minkan: '明槓', ankan: '暗槓' };
 
   function calcCounts() {
@@ -257,6 +255,8 @@
       '<div class="opt-row"><label>場風</label>' + seg('round', [[27, '東'], [28, '南']]) + '<label>自風</label>' + seg('seat', seats) + '</div>' +
       '<div class="opt-row"><label>ドラ</label><div class="stepper"><button type="button" data-cdora="-1" aria-label="ドラを減らす">−</button><b>' + calc.dora +
       '</b><button type="button" data-cdora="1" aria-label="ドラを増やす">＋</button></div><small>赤・裏も合わせた枚数</small></div>' +
+      (three && rules.nukidora ? '<div class="opt-row"><label>北抜き</label><div class="stepper"><button type="button" data-cnuki="-1" aria-label="北抜きを減らす">−</button><b>' + calc.nuki +
+        '</b><button type="button" data-cnuki="1" aria-label="北抜きを増やす">＋</button></div></div>' : '') +
       '<div class="opt-row">' + flag('ippatsu', '一発') + flag('rinshan', '嶺上開花') + flag('chankan', '槍槓') + flag('haitei', '海底・河底') + flag('tenhou', '天和・地和') + '</div>';
 
     // 結果
@@ -267,7 +267,7 @@
       calc.tiles.forEach(function (t) { closedCounts[t]++; });
       var hand = { closed: calc.tiles.slice(0, n - 1), winTile: calc.tiles[n - 1], melds: calc.melds, tsumo: calc.tsumo,
         riichi: calc.riichi > 0, doubleRiichi: calc.riichi === 2, seatWind: calc.seat, roundWind: calc.round,
-        doraIndicators: [], extraDora: calc.dora, flags: calc.flags };
+        doraIndicators: [], extraDora: calc.dora, nuki: calc.nuki, flags: calc.flags };
       var r = E.evaluate(hand, rules);
       if (r) out = explain({ type: 'hand', score: r.score, result: r });
       else if (S.shanten(closedCounts) === -1) out = '<div class="status">役がありません</div><p class="hint">リーチや役牌など、役が1つ必要です</p>';
@@ -287,6 +287,7 @@
     else if (d.cset) calc[d.cset] = d.val === 'true' ? true : d.val === 'false' ? false : Number(d.val);
     else if (d.cflag) calc.flags[d.cflag] = !calc.flags[d.cflag];
     else if (d.cdora) calc.dora = Math.max(0, Math.min(20, calc.dora + Number(d.cdora)));
+    else if (d.cnuki) calc.nuki = Math.max(0, Math.min(4, calc.nuki + Number(d.cnuki)));
     else return false;
     renderCalc();
     return true;
@@ -428,13 +429,12 @@
 
   // ---------- 操作 ----------
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('button, a');
+    var t = e.target.closest('button');
     if (!t) return;
     var d = t.dataset;
     if (calcClick(d)) return;
     if (t.id === 'calc-clear') { calc.tiles = []; calc.melds = []; calc.mode = 'hand'; renderCalc(); return; }
-    if (d.view) { show(d.view); try { history.replaceState(null, '', '#' + d.view); } catch (err) { /* 表示だけ切り替える */ } }
-    else if (d.start) start(d.start);
+    if (d.start) start(d.start);
     else if (d.value) answer(d.value);
     else if (t.id === 'next') next();
     else if ('home' in d) renderHome();
@@ -453,7 +453,6 @@
       renderTable();
     }
   });
-  window.addEventListener('hashchange', function () { show(location.hash.slice(1)); });
 
-  show(location.hash.slice(1));
+  show(document.body.dataset.view);
 })();

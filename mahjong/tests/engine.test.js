@@ -238,3 +238,19 @@ test('状況役: 一発・ダブル立直・嶺上開花・天和、ドラ枚数
   assert.deepStrictEqual(names(t), ['天和']);
   assert.strictEqual(t.score.text, '16000オール');
 });
+
+test('三人麻雀の北抜きドラ: 1枚1翻、北がドラなら2翻分', () => {
+  const sanma = { ...R.PRESETS.sanma };
+  const h = (ind) => hand('456p789p23s678s55s', '4s', { riichi: true, nuki: 2, doraIndicators: ind });
+  assert.strictEqual(E.evaluate(h([]), sanma).han, 4);          // 立直・平和 + 北抜き2
+  assert.strictEqual(E.evaluate(h([29]), sanma).han, 6);        // 表示牌が西なら北がドラ
+  assert.strictEqual(E.evaluate(h([]), { ...sanma, nukidora: false }).han, 2);
+  assert.strictEqual(E.evaluate(h([]), R.PRESETS.standard).han, 2); // 四人麻雀では数えない
+  for (let i = 0; i < 500; i++) {
+    const q = G.makeHandQuestion(sanma);
+    const all = q.hand.closed.concat([q.hand.winTile]);
+    q.hand.melds.forEach((m) => all.push(...m.tiles));
+    assert.ok(!all.includes(30), '北抜きありでは北を手牌に入れない');
+    assert.strictEqual(E.evaluate(q.hand, sanma).score.text, q.answer);
+  }
+});

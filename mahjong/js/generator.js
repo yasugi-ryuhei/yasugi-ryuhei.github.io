@@ -60,6 +60,7 @@
     var mainSuit = rand(3);
     function allowed(t) {
       if (three && t >= 1 && t <= 7) return false;
+      if (three && rules.nukidora && t === 30) return false; // 北は抜くので手牌に入れない
       if (style === 'tanyao') return !E.isYaochu(t);
       if (style === 'honitsu') return E.suitOf(t) === mainSuit || E.isHonor(t);
       return true;
@@ -174,6 +175,7 @@
       do { ind = rand(34); } while (counts[ind] >= 4 || (three && ind >= 1 && ind <= 7));
       hand.doraIndicators = [ind];
       applyAka(hand, rules);
+      if (three && rules.nukidora) hand.nuki = pick([0, 0, 0, 1, 1, 2, 3]);
 
       var result = E.evaluate(hand, rules);
       if (!result) continue;

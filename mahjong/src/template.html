@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}}</title>
+  <meta name="description" content="{{DESC}}">
+  <link rel="canonical" href="{{URL}}">
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{DESC}}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{URL}}">
+  <meta property="og:site_name" content="麻雀ドリル">
+  <link rel="stylesheet" href="{{ROOT}}css/style.css">
+</head>
+<body data-view="{{VIEW}}">
+  <header class="site-header">
+    <div class="inner">
+      <a class="logo" href="{{ROOT}}">麻雀ドリル</a>
+      <nav class="tabs" aria-label="機能">
+{{TABS}}
+      </nav>
+    </div>
+  </header>
+
+  <main class="inner">
+    <section id="view-{{VIEW}}">
+{{CONTENT}}      <p class="note about">{{ABOUT}}</p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="inner">© 麻雀ドリル</div></footer>
+
+  <script src="{{ROOT}}js/engine.js"></script>
+  <script src="{{ROOT}}js/generator.js"></script>
+  <script src="{{ROOT}}js/shanten.js"></script>
+  <script src="{{ROOT}}js/rules.js"></script>
+  <script src="{{ROOT}}js/tiles.js"></script>
+  <script src="{{ROOT}}js/yaku.js"></script>
+  <script src="{{ROOT}}js/app.js"></script>
+</body>
+</html>

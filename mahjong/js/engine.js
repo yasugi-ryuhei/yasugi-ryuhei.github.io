@@ -106,6 +106,7 @@
     var tiles = allTiles(hand), n = 0;
     (hand.doraIndicators || []).forEach(function (ind) {
       var d = doraFromIndicator(ind, hand._rules);
+      if (d === 30) n += hand.nuki; // 抜いた北がドラのときは、その分も数える
       tiles.forEach(function (t) { if (t === d) n++; });
     });
     return n;
@@ -265,9 +266,9 @@
     var yakuHan = yaku.reduce(function (s2, y) { return s2 + y.han; }, 0);
     if (yakuHan === 0) return null;
     var dora = countDora(hand) + hand.extraDora;
-    var han = yakuHan + dora + hand._aka;
+    var han = yakuHan + dora + hand._aka + hand.nuki;
     return {
-      yaku: yaku, yakuman: 0, han: han, yakuHan: yakuHan, dora: dora, aka: hand._aka, fu: fu, fuItems: fuItems,
+      yaku: yaku, yakuman: 0, han: han, yakuHan: yakuHan, dora: dora, aka: hand._aka, nuki: hand.nuki, fu: fu, fuItems: fuItems,
       score: calcScore(han, fu, isDealer, hand.tsumo, 0, hand._rules), pair: pair, groups: groups, wait: wait
     };
   }
@@ -289,7 +290,8 @@
       melds: (src.melds || []).map(function (m) { return { type: m.type, tiles: m.tiles.map(norm) }; }),
       tsumo: src.tsumo, riichi: src.riichi, seatWind: src.seatWind, roundWind: src.roundWind,
       doraIndicators: src.doraIndicators || [], _rules: rules || DEFAULT_RULES,
-      flags: src.flags || {}, doubleRiichi: !!src.doubleRiichi && !!src.riichi, extraDora: src.extraDora || 0
+      flags: src.flags || {}, doubleRiichi: !!src.doubleRiichi && !!src.riichi, extraDora: src.extraDora || 0,
+      nuki: (rules && rules.players === 3 && rules.nukidora && src.nuki) || 0
     };
     hand._aka = aka;
     var melds = hand.melds || [];

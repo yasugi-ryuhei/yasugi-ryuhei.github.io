@@ -76,10 +76,10 @@ table.score td.na { color: #b5b0a2; }
 .site-header .inner { display: flex; align-items: center; gap: 12px; padding-top: 8px; padding-bottom: 8px; }
 .logo { white-space: nowrap; }
 .tabs { display: flex; flex: 1; gap: 4px; justify-content: flex-end; }
-.tabs button { font: inherit; font-size: .9rem; font-weight: 700; color: #cfe5d8; background: none; border: 0; border-radius: 99px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
-.tabs button[aria-selected="true"] { background: #fff; color: var(--felt); }
-.tabs button:focus-visible { outline: 2px solid #ffe9a8; }
-@media (max-width: 420px) { .logo { font-size: .95rem; } .tabs button { padding: 6px 9px; font-size: .85rem; } }
+.tabs a { font: inherit; font-size: .9rem; font-weight: 700; color: #cfe5d8; background: none; border: 0; border-radius: 99px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+.tabs a[aria-current="page"] { background: #fff; color: var(--felt); }
+.tabs a:focus-visible { outline: 2px solid #ffe9a8; }
+@media (max-width: 420px) { .logo { font-size: .95rem; } .tabs a { padding: 6px 9px; font-size: .85rem; } }
 
 /* モード選択 */
 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -183,7 +183,7 @@ h1 { font-size: 1.3rem; }
 .site-header .inner { flex-direction: column; align-items: stretch; gap: 4px; padding-top: 6px; padding-bottom: 6px; }
 .logo { font-size: .85rem; opacity: .9; }
 .tabs { justify-content: space-between; gap: 2px; }
-.tabs button { flex: 1; padding: 7px 2px; font-size: .9rem; }
+.tabs a { flex: 1; padding: 7px 2px; font-size: .9rem; }
 #machi-result { margin-top: 12px; }
 #machi-result > :first-child { margin-top: 0; }
 
@@ -206,8 +206,8 @@ h1 { font-size: 1.3rem; }
 .yaku-ex .tile { width: 21px; flex: none; filter: none; }
 
 /* タブ6つ */
-.tabs button { font-size: .84rem; padding: 7px 1px; }
-@media (max-width: 420px) { .tabs button { font-size: .8rem; padding: 7px 0; } }
+.tabs a { font-size: .84rem; padding: 7px 1px; }
+@media (max-width: 420px) { .tabs a { font-size: .8rem; padding: 7px 0; } }
 
 /* 点数計算機 */
 #calc-melds { margin-top: 6px; }
@@ -228,3 +228,9 @@ h1 { font-size: 1.3rem; }
 #calc-result { margin-top: 12px; }
 #calc-result > :first-child { margin-top: 0; }
 .win .tile-btn { width: 100%; flex: none; }
+
+/* タブとロゴはページ間のリンク */
+.tabs a { text-decoration: none; text-align: center; color: #cfe5d8; font-weight: 700; border-radius: 99px; white-space: nowrap; }
+a.logo { text-decoration: none; }
+a.rule-bar { text-decoration: none; box-sizing: border-box; }
+.about { margin-top: 20px; }

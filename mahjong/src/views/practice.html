@@ -1,0 +1,26 @@
+      <div id="home">
+        <h1>麻雀の点数計算の練習</h1>
+        <div class="modes">
+          <button type="button" class="mode" data-start="table">
+            <span class="mode-art"><b>30</b>符<b>3</b>翻</span>
+            <span class="mode-text"><strong>翻と符から</strong><small id="stat-table"></small></span>
+          </button>
+          <button type="button" class="mode" data-start="hand">
+            <span class="mode-art tiles-art" id="art-hand"></span>
+            <span class="mode-text"><strong>手牌から</strong><small id="stat-hand"></small></span>
+          </button>
+        </div>
+        <a class="rule-bar" href="{{ROOT}}settings/"><span id="rule-summary"></span><i>変更</i></a>
+      </div>
+
+      <div id="quiz" hidden>
+        <div class="quiz-head">
+          <button type="button" class="link-button" data-home>← 戻る</button>
+          <p id="progress" aria-live="polite"></p>
+        </div>
+        <div class="card">
+          <div id="question"></div>
+          <div id="options" class="options"></div>
+          <div id="result" aria-live="polite" hidden></div>
+        </div>
+      </div>
