@@ -4,19 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>麻雀の点数計算機｜手牌を入れて役・符・点数を自動計算｜麻雀ドリル</title>
-  <meta name="description" content="手牌と鳴き、リーチやドラを入れるだけで、役・符・点数を自動で計算します。三人麻雀や赤ドラなどのルール設定にも対応。">
+  <meta name="description" content="手牌と鳴き、リーチやドラを入れるだけで、役・符・点数を自動で計算します。赤ドラや切り上げ満貫などのルール設定にも対応。">
   <link rel="canonical" href="https://yasugi-ryuhei.github.io/mahjong/calculator/">
   <meta property="og:title" content="麻雀の点数計算機｜手牌を入れて役・符・点数を自動計算｜麻雀ドリル">
-  <meta property="og:description" content="手牌と鳴き、リーチやドラを入れるだけで、役・符・点数を自動で計算します。三人麻雀や赤ドラなどのルール設定にも対応。">
+  <meta property="og:description" content="手牌と鳴き、リーチやドラを入れるだけで、役・符・点数を自動で計算します。赤ドラや切り上げ満貫などのルール設定にも対応。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://yasugi-ryuhei.github.io/mahjong/calculator/">
   <meta property="og:site_name" content="麻雀ドリル">
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body data-view="calc">
+<body data-view="calc" data-players="4">
   <header class="site-header">
     <div class="inner">
-      <a class="logo" href="../">麻雀ドリル</a>
+      <div class="brand">
+        <a class="logo" href="../">麻雀ドリル</a>
+        <div class="mode-switch" aria-label="人数">
+          <a href="../calculator/" aria-current="true">四麻</a>
+          <a href="../sanma/calculator/">三麻</a>
+        </div>
+      </div>
       <nav class="tabs" aria-label="機能">
         <a href="../">役一覧</a>
         <a href="../score-table/">点数表</a>

@@ -27,8 +27,16 @@
   // 翻・符から点数を出す
   function calcScore(han, fu, isDealer, isTsumo, yakumanCount, rules) {
     rules = rules || DEFAULT_RULES;
-    var unit = rules.round1000 ? 1000 : 100;
-    function up(n) { return Math.ceil(n / unit) * unit; }
+    // まず100点単位に切り上げ、1000点単位のルールならさらに丸める
+    function up(n) {
+      var x = Math.ceil(n / 100) * 100;
+      if (!rules.round1000) return x;
+      var mode = rules.roundMode || 'ceil';
+      var y = mode === 'half' ? Math.floor((x + 500) / 1000) * 1000      // 四捨五入
+        : mode === 'five6' ? Math.floor((x + 400) / 1000) * 1000         // 五捨六入
+        : Math.ceil(x / 1000) * 1000;                                    // 切り上げ
+      return Math.max(y, 1000);
+    }
     var three = rules.players === 3, noLoss = three && !rules.tsumoLoss;
     var base, limit = '';
     if (yakumanCount) { base = 8000 * yakumanCount; limit = yakumanCount === 1 ? '役満' : yakumanCount === 2 ? 'ダブル役満' : yakumanCount === 3 ? 'トリプル役満' : yakumanCount + '倍役満'; }

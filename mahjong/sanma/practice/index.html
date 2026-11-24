@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>三人麻雀（サンマ）の点数計算 練習問題（無料・解説つき）｜麻雀ドリル</title>
+  <meta name="description" content="三人麻雀（サンマ）の点数計算を4択で練習できます。北抜きドラやツモ損など、自分の卓のルールで出題します。">
+  <link rel="canonical" href="https://yasugi-ryuhei.github.io/mahjong/sanma/practice/">
+  <meta property="og:title" content="三人麻雀（サンマ）の点数計算 練習問題（無料・解説つき）｜麻雀ドリル">
+  <meta property="og:description" content="三人麻雀（サンマ）の点数計算を4択で練習できます。北抜きドラやツモ損など、自分の卓のルールで出題します。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yasugi-ryuhei.github.io/mahjong/sanma/practice/">
+  <meta property="og:site_name" content="麻雀ドリル">
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body data-view="practice" data-players="3">
+  <header class="site-header">
+    <div class="inner">
+      <div class="brand">
+        <a class="logo" href="../../sanma/">麻雀ドリル</a>
+        <div class="mode-switch" aria-label="人数">
+          <a href="../../practice/">四麻</a>
+          <a href="../../sanma/practice/" aria-current="true">三麻</a>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="機能">
+        <a href="../../sanma/">役一覧</a>
+        <a href="../../sanma/score-table/">点数表</a>
+        <a href="../../sanma/calculator/">計算機</a>
+        <a href="../../sanma/machi/">待ち牌</a>
+        <a href="../../sanma/practice/" aria-current="page">練習</a>
+        <a href="../../sanma/settings/">設定</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="inner">
+    <section id="view-practice">
+      <div id="home">
+        <h1>三人麻雀の点数計算の練習</h1>
+        <div class="modes">
+          <button type="button" class="mode" data-start="table">
+            <span class="mode-art"><b>30</b>符<b>3</b>翻</span>
+            <span class="mode-text"><strong>翻と符から</strong><small id="stat-table"></small></span>
+          </button>
+          <button type="button" class="mode" data-start="hand">
+            <span class="mode-art tiles-art" id="art-hand"></span>
+            <span class="mode-text"><strong>手牌から</strong><small id="stat-hand"></small></span>
+          </button>
+        </div>
+        <a class="rule-bar" href="../../sanma/settings/"><span id="rule-summary"></span><i>変更</i></a>
+      </div>
+
+      <div id="quiz" hidden>
+        <div class="quiz-head">
+          <button type="button" class="link-button" data-home>← 戻る</button>
+          <p id="progress" aria-live="polite"></p>
+        </div>
+        <div class="card">
+          <div id="question"></div>
+          <div id="options" class="options"></div>
+          <div id="result" aria-live="polite" hidden></div>
+        </div>
+      </div>
+      <p class="note about">設定したルールで問題が作られます。成績はこの端末に保存され、登録は不要です。</p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="inner">© 麻雀ドリル</div></footer>
+
+  <script src="../../js/engine.js"></script>
+  <script src="../../js/generator.js"></script>
+  <script src="../../js/shanten.js"></script>
+  <script src="../../js/rules.js"></script>
+  <script src="../../js/tiles.js"></script>
+  <script src="../../js/yaku.js"></script>
+  <script src="../../js/app.js"></script>
+</body>
+</html>
